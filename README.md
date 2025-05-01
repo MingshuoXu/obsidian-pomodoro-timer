@@ -198,4 +198,4 @@ You can adjust the break interval setting to `0`, this will turn off `Break` ses
 
 ---
 
-[<img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="BuyMeACoffee" width="150">](https://www.buymeacoffee.com/eatgrass)
+

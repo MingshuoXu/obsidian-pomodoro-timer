@@ -17,6 +17,8 @@ export type TaskFormat = 'TASKS' | 'DATAVIEW'
 export interface Settings {
     workLen: number
     breakLen: number
+    instantBreakMin: number
+    instantBreakMax: number
     autostart: boolean
     useStatusBarTimer: boolean
     notificationSound: boolean
@@ -38,6 +40,8 @@ export default class PomodoroSettings extends PluginSettingTab {
     static readonly DEFAULT_SETTINGS: Settings = {
         workLen: 25,
         breakLen: 5,
+        instantBreakMin: 10,
+        instantBreakMax: 12,
         autostart: false,
         useStatusBarTimer: false,
         notificationSound: true,

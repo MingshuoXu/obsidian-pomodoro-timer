@@ -20,7 +20,31 @@ const updateBreakLen = (e: Event) => {
         if (value >= 0) {
             s.breakLen = value
         }
-        target.value = s.workLen.toString()
+        target.value = s.breakLen.toString()
+        return s
+    })
+}
+
+const updateInstantBreakMin = (e: Event) => {
+    const target = e.target as HTMLInputElement
+    const value = parseInt(target.value)
+    settings.update((s) => {
+        if (value >= 0) {
+            s.instantBreakMin = value
+        }
+        target.value = s.instantBreakMin.toString()
+        return s
+    })
+}
+
+const updateInstantBreakMax = (e: Event) => {
+    const target = e.target as HTMLInputElement
+    const value = parseInt(target.value)
+    settings.update((s) => {
+        if (value >= 0) {
+            s.instantBreakMax = value
+        }
+        target.value = s.instantBreakMax.toString()
         return s
     })
 }
@@ -71,6 +95,28 @@ const updateBreakLen = (e: Event) => {
             </div>
             <div class="pomodoro-settings-control">
                 <input type="checkbox" bind:checked={$settings.logFocused} />
+            </div>
+        </div>
+        <div class="pomodoro-settings-item">
+            <div class="pomodoro-settings-label">Min Instant Break Interval</div>
+            <div class="pomodoro-settings-control">
+                <input
+                    value={$settings.instantBreakMin}
+                    on:change={updateInstantBreakMin}
+                    min="0"
+                    type="number"
+                />
+            </div>
+        </div>
+        <div class="pomodoro-settings-item">
+            <div class="pomodoro-settings-label">Max Instant Break Interval</div>
+            <div class="pomodoro-settings-control">
+                <input
+                    value={$settings.instantBreakMax}
+                    on:change={updateInstantBreakMax}
+                    min="0"
+                    type="number"
+                />
             </div>
         </div>
     </div>

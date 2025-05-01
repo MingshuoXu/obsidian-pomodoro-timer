@@ -45,11 +45,15 @@ export type TimerState = {
     // lastTick: number
     mode: Mode
     elapsed: number
+    shortElapsed: number
     startTime: number | null
     inSession: boolean
     workLen: number
     breakLen: number
+    instantBreakMin: number
+    instantBreakMax: number
     count: number
+    shortCount: number
     duration: number
 }
 
@@ -81,18 +85,24 @@ export default class Timer implements Readable<TimerStore> {
         this.plugin = plugin
         this.logger = new Logger(plugin)
         let count = this.toMillis(plugin.getSettings().workLen)
+        let shortCount = 0
+        
         this.state = {
             autostart: plugin.getSettings().autostart,
             workLen: plugin.getSettings().workLen,
             breakLen: plugin.getSettings().breakLen,
+            instantBreakMin: plugin.getSettings().instantBreakMin,
+            instantBreakMax: plugin.getSettings().instantBreakMax,
             running: false,
             // lastTick: 0,
             mode: 'WORK',
             elapsed: 0,
+            shortElapsed: 0,
             startTime: null,
             inSession: false,
             duration: plugin.getSettings().workLen,
             count,
+            shortCount,
         }
 
         let store = writable(this.state)
@@ -133,9 +143,17 @@ export default class Timer implements Readable<TimerStore> {
         return minutes * 60 * 1000
     }
 
+    private createRandom(min: number, max: number) {
+        let millisMin = this.toMillis(min)
+        let millisMax = this.toMillis(max)
+        let random = Math.floor(Math.random() * (millisMax - millisMin + 1)) + millisMin
+        return random
+    }
+
     private tick(t: number) {
         let timeup: boolean = false
         let pause: boolean = false
+        let shortTimeup: boolean = false
         this.update((s) => {
             if (s.running) {
                 s.elapsed += t
@@ -143,13 +161,32 @@ export default class Timer implements Readable<TimerStore> {
                     s.elapsed = s.count
                 }
                 timeup = s.elapsed >= s.count
+                if (s.instantBreakMax > 0) {
+                    s.shortElapsed += t
+                    if (s.shortElapsed >= s.shortCount) {
+                        s.shortElapsed = 0
+                        shortTimeup = true
+                    }
+                }
             } else {
                 pause = true
             }
             return s
         })
-        if (!pause && timeup) {
-            this.timeup()
+        if (!pause) {
+            if (timeup) {
+                this.timeup()
+            }
+            if (shortTimeup) {
+                this.update((s) => {
+                    s.shortCount = this.createRandom(
+                        s.instantBreakMin,
+                        s.instantBreakMax,
+                    )
+                    return s
+                })
+                this.instantNotify()
+            }
         }
     }
 
@@ -196,6 +233,12 @@ export default class Timer implements Readable<TimerStore> {
                 s.elapsed = 0
                 s.duration = s.mode === 'WORK' ? s.workLen : s.breakLen
                 s.count = s.duration * 60 * 1000
+                if (s.instantBreakMax > 0) {
+                    s.shortCount = this.createRandom(
+                        s.instantBreakMin,
+                        s.instantBreakMax,
+                    )
+                }
                 s.startTime = now
             }
             s.inSession = true
@@ -240,7 +283,7 @@ export default class Timer implements Readable<TimerStore> {
             const sysNotification = new Notification({
                 title: 'Pomodoro Timer',
                 body: text,
-                silent: true,
+                silent: false,
             })
             sysNotification.on('click', () => {
                 if (logFile) {
@@ -260,6 +303,28 @@ export default class Timer implements Readable<TimerStore> {
             })
             new Notice(fragment)
         }
+
+        if (this.plugin.getSettings().notificationSound) {
+            this.playAudio()
+        }
+    }
+
+    private instantNotify() {
+        const text = `instant rest for about 15 seconds to reinforce your focus`
+
+        if (this.plugin.getSettings().useSystemNotification) {
+            const Notification = (require('electron') as any).remote
+                .Notification
+            const sysNotification = new Notification({
+                title: 'Pomodoro Timer',
+                body: text,
+                silent: true,
+            })
+            sysNotification.on('click', () => {
+                sysNotification.close()
+            })
+            sysNotification.show()
+        } 
 
         if (this.plugin.getSettings().notificationSound) {
             this.playAudio()
