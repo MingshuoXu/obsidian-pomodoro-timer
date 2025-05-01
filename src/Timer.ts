@@ -165,6 +165,9 @@ export default class Timer implements Readable<TimerStore> {
                     s.shortElapsed += t
                     if (s.shortElapsed >= s.shortCount) {
                         s.shortElapsed = 0
+                        s.shortCount = this.createRandom(
+                            s.instantBreakMin,
+                            s.instantBreakMax)
                         shortTimeup = true
                     }
                 }
@@ -178,13 +181,6 @@ export default class Timer implements Readable<TimerStore> {
                 this.timeup()
             }
             if (shortTimeup) {
-                this.update((s) => {
-                    s.shortCount = this.createRandom(
-                        s.instantBreakMin,
-                        s.instantBreakMax,
-                    )
-                    return s
-                })
                 this.instantNotify()
             }
         }
@@ -234,6 +230,8 @@ export default class Timer implements Readable<TimerStore> {
                 s.duration = s.mode === 'WORK' ? s.workLen : s.breakLen
                 s.count = s.duration * 60 * 1000
                 if (s.instantBreakMax > 0) {
+                    s.instantBreakMin = this.plugin.getSettings().instantBreakMin
+                    s.instantBreakMax = this.plugin.getSettings().instantBreakMax
                     s.shortCount = this.createRandom(
                         s.instantBreakMin,
                         s.instantBreakMax,
