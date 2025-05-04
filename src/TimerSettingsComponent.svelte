@@ -154,9 +154,9 @@ const updateInstantBreakRandomOffset = (e: Event) => {
 .pomodoro-settings-label {
     flex: 1;
     min-width: 0;
-    white-space: normal; /* 允许换行 */
-    word-break: break-word; /* 允许单词内换行 */
-    overflow-wrap: break-word; /* 更智能的换行方式 */
+    white-space: normal; 
+    word-break: break-word; 
+    overflow-wrap: break-word; 
 }
 
 .pomodoro-settings-control {
@@ -167,8 +167,8 @@ const updateInstantBreakRandomOffset = (e: Event) => {
 }
 
 .pomodoro-settings-unit {
-    white-space: nowrap; /* 禁止单位换行 */
-    width: 20px; /* 固定单位宽度 */
+    white-space: nowrap; 
+    width: 20px; 
     align-items: left;
 }
 
@@ -188,7 +188,6 @@ const updateInstantBreakRandomOffset = (e: Event) => {
     box-shadow: none;
 }
 
-/* 复选框样式调整 */
 .pomodoro-settings-item input[type='checkbox'] {
     margin: 0;
 }
