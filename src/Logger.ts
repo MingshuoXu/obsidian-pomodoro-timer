@@ -155,7 +155,7 @@ export default class Logger {
             let begin = moment(log.begin)
             let end = moment(log.end)
             if (settings.logFormat === 'SIMPLE') {
-                return `**${log.mode}(${log.duration}m)**: ${begin.format(
+                return `- **${log.mode}(${log.duration}m)**: ${begin.format(
                     'HH:mm',
                 )} - ${end.format('HH:mm')}`
             }
