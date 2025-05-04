@@ -146,7 +146,7 @@ export default class Timer implements Readable<TimerStore> {
 
     private createRandom(mean: number, variance: number) {
         let meanValue = this.toMillis(mean)
-        let random = Math.floor(((Math.random()-0.5) * variance / 100 * meanValue + 1) * + meanValue)
+        let random = Math.floor(((Math.random()-0.5) * variance / 100 * meanValue + 1) * meanValue)
         return random
     }
 
