@@ -25,26 +25,26 @@ const updateBreakLen = (e: Event) => {
     })
 }
 
-const updateInstantBreakMin = (e: Event) => {
+const updateInstantBreakInterval = (e: Event) => {
     const target = e.target as HTMLInputElement
     const value = parseInt(target.value)
     settings.update((s) => {
         if (value >= 0) {
-            s.instantBreakMin = value
+            s.instantBreakInterval = value
         }
-        target.value = s.instantBreakMin.toString()
+        target.value = s.instantBreakInterval.toString()
         return s
     })
 }
 
-const updateInstantBreakMax = (e: Event) => {
+const updateInstantBreakRandomOffset = (e: Event) => {
     const target = e.target as HTMLInputElement
     const value = parseInt(target.value)
     settings.update((s) => {
-        if (value >= 0) {
-            s.instantBreakMax = value
+        if (value >= 0 && value <= 30) {
+            s.instantBreakRandomOffset = value
         }
-        target.value = s.instantBreakMax.toString()
+        target.value = s.instantBreakRandomOffset.toString()
         return s
     })
 }
@@ -61,6 +61,7 @@ const updateInstantBreakMax = (e: Event) => {
                     min="1"
                     type="number"
                 />
+                <span class="pomodoro-settings-unit">mins</span>
             </div>
         </div>
         <div class="pomodoro-settings-item">
@@ -72,6 +73,31 @@ const updateInstantBreakMax = (e: Event) => {
                     min="0"
                     type="number"
                 />
+                <span class="pomodoro-settings-unit">mins</span>
+            </div>
+        </div>
+        <div class="pomodoro-settings-item">
+            <div class="pomodoro-settings-label">Instant Break Interval - Mean</div>
+            <div class="pomodoro-settings-control">
+                <input
+                    value={$settings.instantBreakInterval}
+                    on:change={updateInstantBreakInterval}
+                    min="0"
+                    type="number"
+                />
+                <span class="pomodoro-settings-unit">mins</span>
+            </div>
+        </div>
+        <div class="pomodoro-settings-item">
+            <div class="pomodoro-settings-label">Instant Break Interval - Offset</div>
+            <div class="pomodoro-settings-control">
+                <input
+                    value={$settings.instantBreakRandomOffset}
+                    on:change={updateInstantBreakRandomOffset}
+                    min="0"
+                    type="number"
+                />
+                <span class="pomodoro-settings-unit">%</span>
             </div>
         </div>
         <div class="pomodoro-settings-item">
@@ -97,28 +123,6 @@ const updateInstantBreakMax = (e: Event) => {
                 <input type="checkbox" bind:checked={$settings.logFocused} />
             </div>
         </div>
-        <div class="pomodoro-settings-item">
-            <div class="pomodoro-settings-label">Min Instant Break Interval</div>
-            <div class="pomodoro-settings-control">
-                <input
-                    value={$settings.instantBreakMin}
-                    on:change={updateInstantBreakMin}
-                    min="0"
-                    type="number"
-                />
-            </div>
-        </div>
-        <div class="pomodoro-settings-item">
-            <div class="pomodoro-settings-label">Max Instant Break Interval</div>
-            <div class="pomodoro-settings-control">
-                <input
-                    value={$settings.instantBreakMax}
-                    on:change={updateInstantBreakMax}
-                    min="0"
-                    type="number"
-                />
-            </div>
-        </div>
     </div>
 </div>
 
@@ -136,34 +140,56 @@ const updateInstantBreakMax = (e: Event) => {
 
 .pomodoro-settings-item {
     display: flex;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     align-items: center;
-    justify-content: space-between;
-    height: 2rem;
+    /* height: 2rem; */
     padding: 0.5rem 1rem;
+    gap: 8px;
 }
 
 .pomodoro-settings-item + .pomodoro-settings-item {
     border-top: 1px solid var(--background-modifier-border);
 }
 
+.pomodoro-settings-label {
+    flex: 1;
+    min-width: 0;
+    white-space: normal; /* 允许换行 */
+    word-break: break-word; /* 允许单词内换行 */
+    overflow-wrap: break-word; /* 更智能的换行方式 */
+}
+
+.pomodoro-settings-control {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.pomodoro-settings-unit {
+    white-space: nowrap; /* 禁止单位换行 */
+    width: 20px; /* 固定单位宽度 */
+    align-items: left;
+}
+
 .pomodoro-settings-item input[type='number'] {
-    /* width: 100%; */
-    font-size: 0.8rem;
+    width: 60px;
+    min-width: 40px;
+    font-size: 0.9rem;
     border: none;
     border-radius: 0;
-    height: 0.8rem;
-    text-align: end;
+    text-align: right;
     background: transparent;
 }
 
-.pomodoro-settings-item input[type='number']:active {
+.pomodoro-settings-item input[type='number']:active,
+.pomodoro-settings-item input[type='number']:focus {
     border: none;
     box-shadow: none;
 }
 
-.pomodoro-settings-item input[type='number']:focus {
-    border: none;
-    box-shadow: none;
+/* 复选框样式调整 */
+.pomodoro-settings-item input[type='checkbox'] {
+    margin: 0;
 }
 </style>

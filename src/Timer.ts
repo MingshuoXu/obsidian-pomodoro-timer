@@ -8,6 +8,7 @@ import Logger, { type LogContext } from 'Logger'
 import DEFAULT_NOTIFICATION from 'Notification'
 import type { Unsubscriber } from 'svelte/motion'
 import type { TaskItem } from 'Tasks'
+import { stat } from 'fs'
 
 export type Mode = 'WORK' | 'BREAK'
 
@@ -50,8 +51,8 @@ export type TimerState = {
     inSession: boolean
     workLen: number
     breakLen: number
-    instantBreakMin: number
-    instantBreakMax: number
+    instantBreakInterval: number
+    instantBreakRandomOffset: number
     count: number
     shortCount: number
     duration: number
@@ -91,8 +92,8 @@ export default class Timer implements Readable<TimerStore> {
             autostart: plugin.getSettings().autostart,
             workLen: plugin.getSettings().workLen,
             breakLen: plugin.getSettings().breakLen,
-            instantBreakMin: plugin.getSettings().instantBreakMin,
-            instantBreakMax: plugin.getSettings().instantBreakMax,
+            instantBreakInterval: plugin.getSettings().instantBreakInterval,
+            instantBreakRandomOffset: plugin.getSettings().instantBreakRandomOffset,
             running: false,
             // lastTick: 0,
             mode: 'WORK',
@@ -143,10 +144,9 @@ export default class Timer implements Readable<TimerStore> {
         return minutes * 60 * 1000
     }
 
-    private createRandom(min: number, max: number) {
-        let millisMin = this.toMillis(min)
-        let millisMax = this.toMillis(max)
-        let random = Math.floor(Math.random() * (millisMax - millisMin + 1)) + millisMin
+    private createRandom(mean: number, variance: number) {
+        let meanValue = this.toMillis(mean)
+        let random = Math.floor(((Math.random()-0.5) * variance / 100 * meanValue + 1) * + meanValue)
         return random
     }
 
@@ -161,13 +161,13 @@ export default class Timer implements Readable<TimerStore> {
                     s.elapsed = s.count
                 }
                 timeup = s.elapsed >= s.count
-                if (s.instantBreakMax > 0) {
+                if (s.instantBreakInterval > 0 && s.mode == 'WORK') {
                     s.shortElapsed += t
                     if (s.shortElapsed >= s.shortCount) {
                         s.shortElapsed = 0
                         s.shortCount = this.createRandom(
-                            s.instantBreakMin,
-                            s.instantBreakMax)
+                            s.instantBreakInterval,
+                            s.instantBreakRandomOffset)
                         shortTimeup = true
                     }
                 }
@@ -229,12 +229,12 @@ export default class Timer implements Readable<TimerStore> {
                 s.elapsed = 0
                 s.duration = s.mode === 'WORK' ? s.workLen : s.breakLen
                 s.count = s.duration * 60 * 1000
-                if (s.instantBreakMax > 0) {
-                    s.instantBreakMin = this.plugin.getSettings().instantBreakMin
-                    s.instantBreakMax = this.plugin.getSettings().instantBreakMax
+                if (s.instantBreakInterval > 0) {
+                    s.instantBreakInterval = this.plugin.getSettings().instantBreakInterval
+                    s.instantBreakRandomOffset = this.plugin.getSettings().instantBreakRandomOffset
                     s.shortCount = this.createRandom(
-                        s.instantBreakMin,
-                        s.instantBreakMax,
+                        s.instantBreakInterval,
+                        s.instantBreakRandomOffset,
                     )
                 }
                 s.startTime = now
@@ -258,6 +258,7 @@ export default class Timer implements Readable<TimerStore> {
         }
         state.duration = state.mode == 'WORK' ? state.workLen : state.breakLen
         state.count = state.duration * 60 * 1000
+        state.shortElapsed = 0
         state.inSession = false
         state.running = false
         this.clock.postMessage({
@@ -308,7 +309,7 @@ export default class Timer implements Readable<TimerStore> {
     }
 
     private instantNotify() {
-        const text = `instant rest for about 15 seconds to reinforce your focus`
+        const text = `Take an instant rest — pause for 3 breaths to refocus.`
 
         if (this.plugin.getSettings().useSystemNotification) {
             const Notification = (require('electron') as any).remote
@@ -361,6 +362,7 @@ export default class Timer implements Readable<TimerStore> {
             })
             state.startTime = null
             state.elapsed = 0
+            state.shortElapsed = 0
             return state
         })
     }
@@ -404,8 +406,11 @@ export default class Timer implements Readable<TimerStore> {
                 state.duration =
                     state.mode == 'WORK' ? state.workLen : state.breakLen
                 state.count = state.duration * 60 * 1000
+                state.shortCount = this.createRandom(
+                    state.instantBreakInterval,
+                    state.instantBreakRandomOffset,
+                )
             }
-
             return state
         })
     }
