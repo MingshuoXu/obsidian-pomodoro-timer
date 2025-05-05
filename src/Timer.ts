@@ -230,8 +230,8 @@ export default class Timer implements Readable<TimerStore> {
                 s.elapsed = 0
                 s.duration = s.mode === 'WORK' ? s.workLen : s.breakLen
                 s.count = s.duration * 60 * 1000
+                s.instantBreakInterval = this.plugin.getSettings().instantBreakInterval
                 if (s.instantBreakInterval > 0) {
-                    s.instantBreakInterval = this.plugin.getSettings().instantBreakInterval
                     s.instantBreakRandomOffset = this.plugin.getSettings().instantBreakRandomOffset
                     s.shortCount = this.createRandom(
                         s.instantBreakInterval,
@@ -347,7 +347,7 @@ export default class Timer implements Readable<TimerStore> {
             if (state.elapsed > 0) {
                 this.logger.log(this.createLogContext(state))
             }
-
+            
             state.duration =
                 state.mode == 'WORK' ? state.workLen : state.breakLen
             state.count = state.duration * 60 * 1000
